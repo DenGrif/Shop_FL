@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+    <h1>Оформление заказа</h1>
+    <form method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>Данные заказа</legend>
+            {{ form.as_p }}
+        </fieldset>
+        <button type="submit" class="btn btn-primary mt-2">Подтвердить заказ</button>
+    </form>
+    <a href="{% url 'cart_detail' %}" class="btn btn-secondary mt-2">Вернуться в корзину</a>
+{% endblock %}
