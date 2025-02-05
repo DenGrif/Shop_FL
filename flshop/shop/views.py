@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, OrderCreateForm
 from .models import Product, Order
 
+
 def home(request):
     """
     Главная страница, отображающая home.html.
@@ -26,12 +27,18 @@ def register(request):
     # его можно разместить либо в shop/templates/registration/, либо объединить с шаблонами приложения.
     return render(request, 'registration/register.html', {'form': form})
 
+
 def product_list(request):
     """
     Страница отображения каталога цветов.
     """
-    products = Product.objects.all()
+    category = request.GET.get('category')
+    if category:
+        products = Product.objects.filter(category=category)
+    else:
+        products = Product.objects.all()
     return render(request, 'shop/product_list.html', {'products': products})
+
 
 def product_detail(request, pk):
     """
@@ -40,16 +47,6 @@ def product_detail(request, pk):
     product = get_object_or_404(Product, pk=pk)
     return render(request, 'shop/product_detail.html', {'product': product})
 
-
-# shop/views.py
-from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.http import require_POST
-from django.contrib.auth.decorators import login_required
-from .forms import CustomUserCreationForm, OrderCreateForm
-from .models import Product, Order
-
-
-# Остальные функции остаются без изменений...
 
 def cart_detail(request):
     """
@@ -152,3 +149,10 @@ def order_create(request):
     else:
         form = OrderCreateForm()
     return render(request, 'shop/order_create.html', {'form': form})
+
+# def product_list(request):
+#     """
+#     Страница отображения каталога цветов.
+#     """
+#     products = Product.objects.all()
+#     return render(request, 'shop/product_list.html', {'products': products})

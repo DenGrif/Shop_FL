@@ -1,15 +1,27 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Каталог цветов{% endblock %}
 
 {% block content %}
     <div class="container">
         <h1 class="my-4">Каталог цветов</h1>
+        <!-- Фильтрация по категориям -->
+        <div class="my-4">
+            <a href="{% url 'product_list' %}" class="btn btn-secondary">Все товары</a>
+            <a href="?category=flower" class="btn btn-secondary">Цветы</a>
+            <a href="?category=bouquet" class="btn btn-secondary">Букеты</a>
+        </div>
+
         <div class="row">
             {% for product in products %}
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        {% if product.image %}
+                            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="{% static 'default_image.jpg' %}" class="card-img-top" alt="Заглушка">
+                        {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ product.name }}</h5>
                             <p class="card-text">{{ product.description }}</p>

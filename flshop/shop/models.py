@@ -32,13 +32,16 @@ class CustomUser(AbstractUser):
 
 
 class Product(models.Model):
-    """
-    Модель товара (букета) с информацией: название, описание, цена, изображение.
-    """
+    CATEGORY_CHOICES = [
+        ('flower', 'Цветы'),
+        ('bouquet', 'Букеты'),
+    ]
+
     name = models.CharField(max_length=200)
-    description = models.TextField(blank=True)
+    description = models.TextField()
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    image = models.ImageField(upload_to='products/', blank=True, null=True)
+    image = models.ImageField(upload_to='products/', null=True)
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, null=True)
 
     def __str__(self):
         return self.name
