@@ -4,6 +4,11 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from .forms import CustomUserCreationForm, OrderCreateForm
 from .models import Product, Order
+from bot.telegram_bot import notify_new_order
+from asgiref.sync import sync_to_async
+import threading
+from bot.telegram_bot import notify_new_order
+import logging
 
 
 def home(request):
@@ -11,6 +16,7 @@ def home(request):
     Главная страница, отображающая home.html.
     """
     return render(request, 'shop/home.html')
+
 
 def register(request):
     """
@@ -23,8 +29,6 @@ def register(request):
             return redirect('login')
     else:
         form = CustomUserCreationForm()
-    # Обратите внимание: здесь шаблон registration/register.html,
-    # его можно разместить либо в shop/templates/registration/, либо объединить с шаблонами приложения.
     return render(request, 'registration/register.html', {'form': form})
 
 
@@ -108,6 +112,7 @@ def cart_add(request, product_id):
     request.session['cart'] = cart
     return redirect('cart_detail')
 
+
 @require_POST
 def cart_update(request):
     """
@@ -133,6 +138,7 @@ def cart_update(request):
     request.session['cart'] = cart
     return redirect('cart_detail')
 
+
 def cart_remove(request, product_id):
     """
     Удаление товара из корзины.
@@ -144,12 +150,15 @@ def cart_remove(request, product_id):
     return redirect('cart_detail')
 
 
+# Асинхронное уведомление
+def send_order_notification_in_thread(order):
+    # Запускаем поток для отправки уведомления в Telegram
+    thread = threading.Thread(target=notify_new_order, args=(order,))
+    thread.start()
+
+
 @login_required
 def order_create(request):
-    """
-    Страница оформления заказа.
-    После создания заказа вызывается функция отправки уведомления в Telegram.
-    """
     cart = request.session.get('cart', {})
     if not cart:
         return redirect('product_list')
@@ -160,23 +169,65 @@ def order_create(request):
             order = form.save(commit=False)
             order.user = request.user
             order.save()
-            # Добавляем товары в заказ.
+
+            # Добавляем товары в заказ
             for product_id, quantity in cart.items():
                 product = Product.objects.get(pk=product_id)
-                # Если нужно учитывать количество, можно создать промежуточную модель OrderItem.
                 order.products.add(product)
             order.save()
-            # Очищаем корзину.
+
+            # Очищаем корзину
             request.session['cart'] = {}
 
-            # Отправляем уведомление в Telegram.
-            from bot.telegram_bot import notify_new_order
-            notify_new_order(order)
+            # Логируем создание заказа
+            logging.info(f"Создан заказ {order.id} для пользователя {order.user.username}")
+
+            # Отправляем уведомление в Telegram в отдельном потоке
+            send_order_notification_in_thread(order)
 
             return render(request, 'shop/order_created.html', {'order': order})
     else:
         form = OrderCreateForm()
     return render(request, 'shop/order_create.html', {'form': form})
+
+
+
+
+
+
+# @login_required
+# def order_create(request):
+#     """
+#     Страница оформления заказа.
+#     После создания заказа вызывается функция отправки уведомления в Telegram.
+#     """
+#     cart = request.session.get('cart', {})
+#     if not cart:
+#         return redirect('product_list')
+#
+#     if request.method == 'POST':
+#         form = OrderCreateForm(request.POST)
+#         if form.is_valid():
+#             order = form.save(commit=False)
+#             order.user = request.user
+#             order.save()
+#             # Добавляем товары в заказ.
+#             for product_id, quantity in cart.items():
+#                 product = Product.objects.get(pk=product_id)
+#                 # Если нужно учитывать количество, можно создать промежуточную модель OrderItem.
+#                 order.products.add(product)
+#             order.save()
+#             # Очищаем корзину.
+#             request.session['cart'] = {}
+#
+#             # Отправляем уведомление в Telegram.
+#             from bot.telegram_bot import notify_new_order
+#             notify_new_order(order)
+#
+#             return render(request, 'shop/order_created.html', {'order': order})
+#     else:
+#         form = OrderCreateForm()
+#     return render(request, 'shop/order_create.html', {'form': form})
 
 # def product_list(request):
 #     """
