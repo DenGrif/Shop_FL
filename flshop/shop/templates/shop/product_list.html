@@ -6,6 +6,7 @@
 {% block content %}
     <div class="container">
         <h1 class="my-4">Каталог цветов</h1>
+
         <!-- Фильтрация по категориям -->
         <div class="my-4">
             <a href="{% url 'product_list' %}" class="btn btn-secondary">Все товары</a>
@@ -26,7 +27,13 @@
                             <h5 class="card-title">{{ product.name }}</h5>
                             <p class="card-text">{{ product.description }}</p>
                             <p class="card-text"><strong>{{ product.price }} ₽</strong></p>
-                            <a href="{% url 'product_detail' product.id %}" class="btn btn-primary">Подробнее</a>
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'product_detail' product.id %}" class="btn btn-primary">Подробнее</a>
+                                <form action="{% url 'cart_add' product.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Купить</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>

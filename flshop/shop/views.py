@@ -54,9 +54,30 @@ def cart_detail(request):
     """
     cart = request.session.get('cart', {})
 
+    if request.method == 'POST':
+        # Обновление количества и удаление товаров
+        for item_id in list(cart.keys()):
+            quantity_field = f'quantity_{item_id}'
+            remove_field = f'remove_item_{item_id}'
+
+            # Обновление количества товара
+            if quantity_field in request.POST:
+                new_quantity = int(request.POST[quantity_field])
+                if new_quantity > 0:
+                    cart[item_id] = new_quantity
+                else:
+                    del cart[item_id]  # Удаляем, если количество стало 0
+
+            # Удаление товара из корзины
+            if remove_field in request.POST:
+                del cart[item_id]
+
+        request.session['cart'] = cart
+        return redirect('cart_detail')
+
     # Если корзина пуста
     if not cart:
-        return render(request, 'shop/cart_detail.html', {'cart': cart, 'products': [], 'total_price': 0})
+        return render(request, 'shop/cart_detail.html', {'products': [], 'total_price': 0})
 
     # Получаем продукты, которые есть в корзине
     products = Product.objects.filter(id__in=cart.keys())
@@ -64,11 +85,11 @@ def cart_detail(request):
     # Вычисляем общую стоимость и добавляем в каждый товар итоговую цену
     total_price = 0
     for product in products:
-        product.quantity = cart[str(product.id)]  # Количество товара
-        product.total_price = product.price * product.quantity  # Итоговая стоимость товара
-        total_price += product.total_price  # Суммируем итоговые цены всех товаров
+        product.quantity = cart[str(product.id)]
+        product.total_price = product.price * product.quantity
+        total_price += product.total_price
 
-    return render(request, 'shop/cart_detail.html', {'cart': cart, 'products': products, 'total_price': total_price})
+    return render(request, 'shop/cart_detail.html', {'products': products, 'total_price': total_price})
 
 
 @require_POST
@@ -77,7 +98,13 @@ def cart_add(request, product_id):
     Добавление товара в корзину.
     """
     cart = request.session.get('cart', {})
-    cart[str(product_id)] = cart.get(str(product_id), 0) + 1
+
+    # Если товар уже есть в корзине, увеличиваем его количество
+    if str(product_id) in cart:
+        cart[str(product_id)] += 1
+    else:
+        cart[str(product_id)] = 1
+
     request.session['cart'] = cart
     return redirect('cart_detail')
 
@@ -92,6 +119,7 @@ def cart_update(request):
         if key.startswith('quantity_'):
             product_id = key.split('_')[1]
             new_quantity = int(value)
+
             if new_quantity <= 0:
                 del cart[product_id]  # Если количество <= 0, удаляем товар
             else:

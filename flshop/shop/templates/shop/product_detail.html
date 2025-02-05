@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">{{ product.name }}</h1>
+    <div class="card mb-4">
+        {% if product.image %}
+            <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+        {% else %}
+            <img src="{% static 'default_image.jpg' %}" class="card-img-top" alt="Заглушка">
+        {% endif %}
+        <div class="card-body">
+            <p class="card-text">{{ product.description }}</p>
+            <h4 class="card-title">{{ product.price }} ₽</h4>
+        </div>
+    </div>
+
+    <form method="POST" action="{% url 'cart_add' product.id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Добавить в корзину</button>
+        <a href="{% url 'cart_detail' %}" class="btn btn-secondary">Перейти в корзину</a>
+    </div>
+</div>
+{% endblock %}
