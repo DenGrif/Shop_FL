@@ -8,7 +8,15 @@ from bot.telegram_bot import notify_new_order
 from asgiref.sync import sync_to_async
 import threading
 from bot.telegram_bot import notify_new_order
+from shop.utils import notify_order_via_http
 import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def notify_order_in_thread(order):
+    threading.Thread(target=notify_order_via_http, args=(order,)).start()
 
 
 def home(request):
@@ -180,10 +188,10 @@ def order_create(request):
             request.session['cart'] = {}
 
             # Логируем создание заказа
-            logging.info(f"Создан заказ {order.id} для пользователя {order.user.username}")
+            logger.info(f"Создан заказ {order.id} для пользователя {order.user.username}")
 
             # Отправляем уведомление в Telegram в отдельном потоке
-            send_order_notification_in_thread(order)
+            notify_order_in_thread(order)
 
             return render(request, 'shop/order_created.html', {'order': order})
     else:

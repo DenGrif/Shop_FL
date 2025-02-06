@@ -1,8 +1,51 @@
 {% extends 'base.html' %}
-{% block title %}Главная{% endblock %}
+
+{% block title %}Главная - Flshop{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background-color: #ffe6e6; /* Светло-красный фон */
+  }
+  .hero-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    text-align: center;
+  }
+  .hero-section img {
+    max-width: 50%;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+  .hero-section .catalog-button {
+    background-color: #ff5e5e;
+    color: white;
+    padding: 10px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 5px;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .hero-section .catalog-button:hover {
+    background-color: #ff3333;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-5">
-    <h2>Добро пожаловать в Flshop!</h2>
-    <p>Это магазин доставки цветов. Вы можете просматривать каталог, регистрироваться, входить в систему и добавлять товары в корзину.</p>
+<div class="hero-section">
+    <h1>Добро пожаловать в Flshop!</h1>
+    <p>В нашем магазине вы найдете самые красивые букеты для ваших близких.</p>
+
+    <!-- Заглушка изображения, замените src на сгенерированное вами изображение -->
+    <img src="/static/images/default_image1.jpg" alt="Красивый букет цветов">
+
+    <a href="{% url 'product_list' %}" class="catalog-button">Перейти в каталог цветов</a>
 </div>
 {% endblock %}
